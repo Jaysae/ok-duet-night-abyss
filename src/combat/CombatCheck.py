@@ -1,5 +1,5 @@
 import time
-
+from ok import og
 from src.tasks.BaseDNATask import BaseDNATask
 
 class CombatCheck(BaseDNATask):
@@ -21,19 +21,21 @@ class CombatCheck(BaseDNATask):
         if self._in_combat:
             now = time.time()
             if now - self.last_combat_check > self.combat_check_interval:
-                in_combat = self.manual_in_combat and self.in_team()
+                in_combat = self.manual_in_combat and self.in_team() and og.device_manager.hwnd_window.is_foreground()
                 self.last_combat_check = now
                 if in_combat:
                     return True
                 return self.reset_to_false(recheck=True, reason='on user stop')
             return True
         else:
-            in_combat = getattr(self, "manual_in_combat", False)
+            in_combat = self.manual_in_combat and self.in_team() and og.device_manager.hwnd_window.is_foreground()
             if in_combat:
                 from src.tasks.AutoCombatTask import AutoCombatTask
                 if isinstance(self, AutoCombatTask):
                     self.load_char()
                 self._in_combat = True
+            else:
+                self.reset_to_false(recheck=True, reason='on user stop')
         return self._in_combat
     
     def reset_to_false(self, recheck=False, reason=""):

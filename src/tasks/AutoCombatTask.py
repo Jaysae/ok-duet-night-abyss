@@ -1,4 +1,4 @@
-from ok import TriggerTask, Logger
+from ok import TriggerTask, Logger, og
 from src.tasks.BaseCombatTask import BaseCombatTask, NotInCombatException, CharDeadException
 
 from pynput import mouse
@@ -17,35 +17,14 @@ class AutoCombatTask(BaseCombatTask, TriggerTask):
         self.config_description.update({
             '激活键': '鼠标侧键',
         })
-        self.listener = None
-        self.manual_in_combat = False
-        self._executor.exit_event.bind_stop(self)
-
-    def disable(self):
-        super().disable()
-        self.stop()
-
-    def pause(self):
-        super().pause()
-        self.stop()
-
-    def stop(self):
-        self.manual_activate = False
-        if self.listener:
-            self.listener.stop()
-            self.listener = None
+        self.connected = False
     
     def run(self):
-        ret = False
-        if not self.in_team():
-            return ret
-        
-        if not self.listener:
-            self.listener = mouse.Listener(on_click=self.on_click)
-            self.listener.start()
+        if not self.connected:
+            self.connected = True
+            og.my_app.clicked.connect(self.on_global_click)
 
-        if not self.listener.running:
-            self.listener.run()
+        ret = False
 
         while self.in_combat():
             ret = True
@@ -62,7 +41,7 @@ class AutoCombatTask(BaseCombatTask, TriggerTask):
             self.combat_end()
         return ret
         
-    def on_click(self, x, y, button, pressed):
+    def on_global_click(self, x, y, button, pressed):
         if self._executor.paused:
             return
         if self.config.get('激活键', 'x2') == 'x1':
@@ -71,6 +50,3 @@ class AutoCombatTask(BaseCombatTask, TriggerTask):
             btn = mouse.Button.x2
         if pressed and button == btn:
             self.manual_in_combat = not self.manual_in_combat
-
-
-
