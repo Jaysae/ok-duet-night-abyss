@@ -27,7 +27,7 @@ class CommissionsTask(BaseCombatTask):
         self.default_config.update({
             "委托手册": "不使用",
             "使用技能": "不使用",
-            "技能释放频率": 5,
+            "技能释放频率": 5.0,
             "启用自动穿引共鸣": True,
             "发出声音提醒": True,
             "自动选择首个密函和密函奖励": True,
@@ -75,7 +75,7 @@ class CommissionsTask(BaseCombatTask):
     def find_esc_menu(self, threshold=0):
         return self.find_one("quit_big_icon", threshold=threshold)
 
-    def open_in_mission_menu(self, time_out=10, raise_if_not_found=True):
+    def open_in_mission_menu(self, time_out=20, raise_if_not_found=True):
         if self.find_esc_menu():
             return True
         found = False
@@ -114,7 +114,7 @@ class CommissionsTask(BaseCombatTask):
         )
         self.sleep(0.5)
         self.click_until(
-            click_func=lambda: self.click_box(quit_btn),
+            click_func=lambda: self.click_box(quit_btn, after_sleep=0.25),
             check_func=lambda: not self.find_quit_btn(),
             time_out=action_timeout,
         )
@@ -150,7 +150,7 @@ class CommissionsTask(BaseCombatTask):
             self.find_continue_btn, time_out=action_timeout, raise_if_not_found=True
         )
         self.click_until(
-            click_func=lambda: self.click_box(continue_btn),
+            click_func=lambda: self.click_box(continue_btn, after_sleep=0.25),
             check_func=lambda: not self.find_continue_btn(),
             time_out=action_timeout,
         )
@@ -159,13 +159,12 @@ class CommissionsTask(BaseCombatTask):
 
     def choose_drop_rate(self, timeout=10):
         action_timeout = self.safe_get("action_timeout", timeout)
+        self.sleep(0.5)
         self.choose_drop_rate_item()
         box = self.box_of_screen_scaled(2560, 1440, 1067, 940, 1415, 992, name="drop_rate_btn", hcenter=True)
         self.click_until(
-            click_func=lambda: self.wait_click_box(
-                lambda: self.find_start_btn(box=box), time_out=0.25
-            ),
-            check_func=lambda: not self.find_start_btn(box=box),
+            click_func=lambda: self.wait_click_box(lambda: self.find_start_btn(box=box), time_out=0.25),
+            check_func=lambda: not self.find_drop_item(),
             time_out=action_timeout,
         )
 
@@ -244,19 +243,26 @@ class CommissionsTask(BaseCombatTask):
         return skill_time
 
     def get_round_info(self):
+        """获取并更新当前轮次信息。"""
         if self.in_team():
             return
-        self.sleep(0.5)
+
+        self.sleep(1)
         round_info_box = self.box_of_screen_scaled(2560, 1440, 531, 517, 618, 602, name="round_info", hcenter=True)
         texts = self.ocr(box=round_info_box)
-        if texts:
-            prev_round = self.current_round
-            try:
-                self.current_round = int(texts[0].name)
-            except:
-                return
-            if prev_round != self.current_round:
-                self.info_set("当前轮次", self.current_round)
+
+        prev_round = self.current_round
+        new_round_from_ocr = None
+        if texts and texts[0].name.isdigit():
+            new_round_from_ocr = int(texts[0].name)
+
+        if new_round_from_ocr is not None:
+            self.current_round = new_round_from_ocr
+        elif self.current_round != -1:  # OCR失败，但之前已有轮次记录，则递增
+            self.current_round += 1
+
+        if prev_round != self.current_round:
+            self.info_set("当前轮次", self.current_round)
 
     def get_wave_info(self):
         if not self.in_team():

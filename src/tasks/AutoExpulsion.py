@@ -47,24 +47,27 @@ class AutoExpulsion(DNAOneTimeTask, CommissionsTask):
         while True:
             if self.in_team():
                 if _start_time == 0:
+                    _count += 1
                     self.move_on_begin()
                     _start_time = time.time()
                 _skill_time = self.use_skill(_skill_time)
                 if time.time() - _start_time >= self.config.get("任务超时时间", 120):
                     logger.info("已经超时，重开任务...")
                     self.give_up_mission()
+                    self.sleep(1)
                     self.wait_until(lambda: not self.in_team(), time_out=30)
 
             _status = self.handle_mission_interface()
             if _status == Mission.START:
-                self.log_info("任务完成")
-                _count += 1
-                if _count >= self.config.get("刷几次", 999):
-                    return
                 self.wait_until(self.in_team, time_out=30)
+                if _count >= self.config.get("刷几次", 999):
+                    self.sleep(1)
+                    self.open_in_mission_menu()
+                    self.log_info("任务终止")
+                    return
+                self.log_info("任务开始")
                 self.sleep(2.5)
-                _start_time = time.time()
-                self.move_on_begin()
+                _start_time = 0
             self.sleep(0.2)
 
     def move_on_begin(self):
