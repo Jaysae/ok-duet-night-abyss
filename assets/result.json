@@ -27,62 +27,72 @@
         },
         {
             "id": 3,
-            "name": "lv_text",
+            "name": "fish_bite",
             "supercategory": ""
         },
         {
             "id": 4,
-            "name": "quit_big_icon",
+            "name": "fish_cast",
             "supercategory": ""
         },
         {
             "id": 5,
-            "name": "quit_icon",
+            "name": "fish_chance",
             "supercategory": ""
         },
         {
             "id": 6,
-            "name": "retry_icon",
-            "supercategory": ""
-        },
-        {
-            "id": 7,
-            "name": "rogue_dialog",
-            "supercategory": ""
-        },
-        {
-            "id": 8,
-            "name": "rogue_gift",
-            "supercategory": ""
-        },
-        {
-            "id": 9,
-            "name": "serum_icon",
-            "supercategory": ""
-        },
-        {
-            "id": 10,
-            "name": "start_big_icon",
-            "supercategory": ""
-        },
-        {
-            "id": 11,
-            "name": "start_icon",
-            "supercategory": ""
-        },
-        {
-            "id": 12,
-            "name": "track_point",
-            "supercategory": ""
-        },
-        {
-            "id": 13,
             "name": "ingame_continue_icon",
             "supercategory": ""
         },
         {
-            "id": 14,
+            "id": 7,
             "name": "ingame_quit_icon",
+            "supercategory": ""
+        },
+        {
+            "id": 8,
+            "name": "lv_text",
+            "supercategory": ""
+        },
+        {
+            "id": 9,
+            "name": "quit_big_icon",
+            "supercategory": ""
+        },
+        {
+            "id": 10,
+            "name": "quit_icon",
+            "supercategory": ""
+        },
+        {
+            "id": 11,
+            "name": "retry_icon",
+            "supercategory": ""
+        },
+        {
+            "id": 12,
+            "name": "rogue_dialog",
+            "supercategory": ""
+        },
+        {
+            "id": 13,
+            "name": "rogue_gift",
+            "supercategory": ""
+        },
+        {
+            "id": 14,
+            "name": "serum_icon",
+            "supercategory": ""
+        },
+        {
+            "id": 15,
+            "name": "start_icon",
+            "supercategory": ""
+        },
+        {
+            "id": 16,
+            "name": "track_point",
             "supercategory": ""
         }
     ],
@@ -149,13 +159,31 @@
             "width": 3840,
             "date_captured": null,
             "id": 6
+        },
+        {
+            "license": 0,
+            "url": null,
+            "file_name": "images/7.png",
+            "height": 2160,
+            "width": 3840,
+            "date_captured": null,
+            "id": 7
+        },
+        {
+            "license": 0,
+            "url": null,
+            "file_name": "images/8.png",
+            "height": 1440,
+            "width": 2560,
+            "date_captured": null,
+            "id": 8
         }
     ],
     "annotations": [
         {
             "id": 0,
             "image_id": 0,
-            "category_id": 13,
+            "category_id": 6,
             "bbox": [
                 2406.818181818182,
                 1468.0681818181818,
@@ -170,7 +198,7 @@
         {
             "id": 1,
             "image_id": 0,
-            "category_id": 14,
+            "category_id": 7,
             "bbox": [
                 1212.9032258064515,
                 1469.784946236559,
@@ -200,7 +228,7 @@
         {
             "id": 3,
             "image_id": 1,
-            "category_id": 11,
+            "category_id": 15,
             "bbox": [
                 1968.6942938971372,
                 1424.638221292875,
@@ -230,7 +258,7 @@
         {
             "id": 5,
             "image_id": 2,
-            "category_id": 6,
+            "category_id": 11,
             "bbox": [
                 2480.4221635883905,
                 1884.6965699208442,
@@ -245,7 +273,7 @@
         {
             "id": 6,
             "image_id": 2,
-            "category_id": 5,
+            "category_id": 10,
             "bbox": [
                 3135.3034300791555,
                 1887.335092348285,
@@ -260,7 +288,7 @@
         {
             "id": 7,
             "image_id": 3,
-            "category_id": 4,
+            "category_id": 9,
             "bbox": [
                 3492.273042806576,
                 1899.032619571743,
@@ -275,7 +303,7 @@
         {
             "id": 8,
             "image_id": 4,
-            "category_id": 12,
+            "category_id": 16,
             "bbox": [
                 3064.4073455759603,
                 1077.1285475792988,
@@ -290,7 +318,7 @@
         {
             "id": 9,
             "image_id": 4,
-            "category_id": 3,
+            "category_id": 8,
             "bbox": [
                 182.07729468599015,
                 2054.5893719806763,
@@ -305,7 +333,7 @@
         {
             "id": 10,
             "image_id": 5,
-            "category_id": 7,
+            "category_id": 12,
             "bbox": [
                 2262.0016504339096,
                 1606.6162720216687,
@@ -320,7 +348,7 @@
         {
             "id": 11,
             "image_id": 5,
-            "category_id": 8,
+            "category_id": 13,
             "bbox": [
                 2263.0901287553647,
                 1328.2832618025752,
@@ -335,7 +363,7 @@
         {
             "id": 12,
             "image_id": 6,
-            "category_id": 9,
+            "category_id": 14,
             "bbox": [
                 90.7,
                 717.1,
@@ -343,6 +371,51 @@
                 50.799999999999955
             ],
             "area": 828.0399999999992,
+            "iscrowd": 0,
+            "ignore": 0,
+            "segmentation": []
+        },
+        {
+            "id": 13,
+            "image_id": 7,
+            "category_id": 3,
+            "bbox": [
+                2915.7142857142853,
+                1608.5714285714284,
+                154.28571428571422,
+                144.28571428571422
+            ],
+            "area": 22261.2244897959,
+            "iscrowd": 0,
+            "ignore": 0,
+            "segmentation": []
+        },
+        {
+            "id": 14,
+            "image_id": 7,
+            "category_id": 4,
+            "bbox": [
+                3205.7142857142853,
+                1592.8571428571427,
+                129.28571428571422,
+                171.42857142857156
+            ],
+            "area": 22163.265306122456,
+            "iscrowd": 0,
+            "ignore": 0,
+            "segmentation": []
+        },
+        {
+            "id": 15,
+            "image_id": 8,
+            "category_id": 5,
+            "bbox": [
+                2348.159509202454,
+                1230.3527607361964,
+                84.35582822085871,
+                91.71779141104298
+            ],
+            "area": 7736.930257066492,
             "iscrowd": 0,
             "ignore": 0,
             "segmentation": []
