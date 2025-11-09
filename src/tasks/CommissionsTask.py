@@ -90,6 +90,7 @@ class CommissionsTask(BaseCombatTask):
         else:
             if raise_if_not_found:
                 raise Exception("未找到任务菜单")
+        self.sleep(0.2)
         return found
 
     def start_mission(self, timeout=10):
