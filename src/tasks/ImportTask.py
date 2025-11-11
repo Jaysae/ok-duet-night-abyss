@@ -45,7 +45,7 @@ class ImportTask(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
 
         self.config_type['副本类型'] = {
             "type": "drop_down",
-            "options": ["默认", "扼守无尽", "探险无尽", "驱离"],
+            "options": ["默认", "扼守无尽", "探险无尽"],
         }
         self.setup_commission_config()
         keys_to_remove = ["启用自动穿引共鸣"]
