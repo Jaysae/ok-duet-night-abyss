@@ -31,13 +31,15 @@ class CommissionsTask(BaseDNATask):
             "启用自动穿引共鸣": True,
             "发出声音提醒": True,
             "自动选择首个密函和密函奖励": True,
+            "优先选择持有数为0的密函奖励": False,
         })
         self.config_description.update({
             "超时时间": "超时后将重启任务",
             "技能释放频率": "毎几秒释放一次技能",
             "启用自动穿引共鸣": "在需要跑图时时启用触发任务的自动穿引共鸣",
             "发出声音提醒": "在需要时发出声音提醒",
-            "自动选择首个密函和密函奖励": "刷武器密函时不建议使用",
+            "自动选择首个密函和密函奖励": "刷武器密函时推荐同时开启下一选项",
+            "优先选择持有数为0的密函奖励": "在上一选项启用时生效，多个目标时选择靠左的",
         })
         self.config_type["委托手册"] = {
             "type": "drop_down",
@@ -214,11 +216,29 @@ class CommissionsTask(BaseDNATask):
                 raise_if_not_found=True,
             )
 
+    def choose_letter_reward_zero (self):
+        self.wait_until(
+            condition=lambda: self.find_next_hint(0.60, 0.64, 0.67, 0.67, r'[:：]'),
+            time_out=2)
+        if self.find_next_hint(0.33, 0.64, 0.40, 0.67, r'[:：]0'):
+            self.log_info("选择第一个奖励", True)
+            self.click(0.36, 0.66, after_sleep=0.5)
+        elif self.find_next_hint(0.47, 0.64, 0.53, 0.67, r'[:：]0'):
+            self.log_info("选择第二个奖励", True)
+            self.click(0.50, 0.66, after_sleep=0.5)            
+        elif self.find_next_hint(0.60, 0.64, 0.67, 0.67, r'[:：]0'):
+            self.log_info("选择第三个奖励", True)
+            self.click(0.63, 0.66, after_sleep=0.5)
+        else:
+            self.log_info("未识别到持有数为0的奖励")
+
     def choose_letter_reward(self, timeout=10):
         if not hasattr(self, "config"):
             return
         action_timeout = self.safe_get("action_timeout", timeout)
         if self.config.get("自动选择首个密函和密函奖励", False):
+            if self.config.get("优先选择持有数为0的密函奖励", False):
+                self.choose_letter_reward_zero()
             self.wait_until(
                 condition=lambda: not self.find_letter_reward_btn(),
                 post_action=lambda: self.click(0.50, 0.83, after_sleep=0.25),
@@ -233,6 +253,7 @@ class CommissionsTask(BaseDNATask):
                 time_out=300,
                 raise_if_not_found=True,
             )
+        self.sleep(3)
 
     def use_skill(self, skill_time):
         if not hasattr(self, "config"):
@@ -372,7 +393,7 @@ class CommissionsTask(BaseDNATask):
             post_action=self.click(0.59, 0.56, after_sleep=0.5),
             time_out=4,
         ):
-            self.wait_until(self.in_team, post_action=self.send_key("esc", after_sleep=1), time_out=10)
+            self.wait_until(self.in_team, post_action=lambda: self.send_key("esc", after_sleep=1), time_out=10)
             return False
         return True
 
