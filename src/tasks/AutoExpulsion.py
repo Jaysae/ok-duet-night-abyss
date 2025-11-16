@@ -43,6 +43,9 @@ class AutoExpulsion(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
 
         self.default_config.pop("启用自动穿引共鸣", None)
         self.action_timeout = 10
+        
+        self.skill_tick = self.create_skill_ticker()
+        self.random_walk_tick = self.create_random_walk_ticker()
 
     def run(self):
         DNAOneTimeTask.run(self)
@@ -85,7 +88,9 @@ class AutoExpulsion(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
         self.init_runtime_state()
 
     def init_runtime_state(self):
-        self.runtime_state = {"start_time": 0, "skill_time": 0, "random_walk_time": 0}
+        self.runtime_state = {"start_time": 0}
+        self.skill_tick.reset()
+        self.random_walk_tick.reset()
 
     def handle_in_mission(self):
         if self.runtime_state["start_time"] == 0:
@@ -98,8 +103,8 @@ class AutoExpulsion(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
             self.give_up_mission()
             self.wait_until(lambda: not self.in_team(), time_out=30, settle_time=1)
 
-        self.runtime_state["skill_time"] = self.use_skill(self.runtime_state["skill_time"])
-        self.runtime_state["random_walk_time"] = self.random_walk(self.runtime_state["random_walk_time"])
+        self.skill_tick()
+        self.random_walk_tick()
 
     def handle_mission_start(self):
         if self.count >= self.config.get("刷几次", 999):
@@ -123,12 +128,26 @@ class AutoExpulsion(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
             if (walk_sec := self.config.get("开局向前走", 0)) > 0:
                 self.send_key("w", down_time=walk_sec)
 
-    def random_walk(self, last_time):
-        duration = 1
-        interval = 3
-        if self.config.get("随机游走", False):
-            if time.time() - last_time >= interval:
+    def create_random_walk_ticker(self):
+        """创建一个随机游走的计时器函数。"""
+        last_time = 0
+
+        def tick():
+            nonlocal last_time
+            if not self.config.get("随机游走", False):
+                return
+            
+            interval = 3
+            duration = 1
+            now = time.perf_counter()
+            if now - last_time >= interval:
+                last_time = now
                 direction = random.choice(["w", "a", "s", "d"])
                 self.send_key(direction, down_time=duration)
-                return time.time()
-        return last_time
+
+        def reset():
+            nonlocal last_time
+            last_time = 0
+
+        tick.reset = reset
+        return tick

@@ -37,6 +37,8 @@ class AutoDefence(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
         self.external_movement = _default_movement
         self._external_config = None
         self._merged_config_cache = None
+        self.jiggle_tick = self.create_jiggle_ticker(10)
+        self.skill_tick = self.create_skill_ticker()
 
     @property
     def config(self):
@@ -104,7 +106,9 @@ class AutoDefence(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
         self.init_runtime_state()
 
     def init_runtime_state(self):
-        self.runtime_state = {"wave_start_time": 0, "wave": -1, "wait_next_wave": False, "skill_time": 0}
+        self.runtime_state = {"wave_start_time": 0, "wave": -1, "wait_next_wave": False}
+        self.skill_tick.reset()
+        self.jiggle_tick.reset()
         self.current_wave = -1
 
     def handle_in_mission(self):
@@ -129,7 +133,8 @@ class AutoDefence(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
 
             # 如果未超时，则使用技能
             if not self.runtime_state["wait_next_wave"]:
-                self.runtime_state["skill_time"] = self.use_skill(self.runtime_state["skill_time"])
+                self.skill_tick()
+            self.jiggle_tick()
         else:
             if self.runtime_state["wave"] > 0:
                 self.init_runtime_state()

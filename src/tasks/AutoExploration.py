@@ -36,6 +36,8 @@ class AutoExploration(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
         self.quick_move_task = QuickMoveTask(self)
         self.external_movement = _default_movement
         self._external_config = None
+        self.jiggle_tick = self.create_jiggle_ticker(10)
+        self.skill_tick = self.create_skill_ticker()
         self._merged_config_cache = None
 
     @property
@@ -104,7 +106,9 @@ class AutoExploration(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
         self.init_runtime_state()
 
     def init_runtime_state(self):
-        self.runtime_state = {"start_time": 0, "skill_time": 0, "wait_next_round": False}
+        self.runtime_state = {"start_time": 0, "wait_next_round": False}
+        self.skill_tick.reset()
+        self.jiggle_tick.reset()
 
     def handle_in_mission(self):
         if self.find_serum():
@@ -123,7 +127,8 @@ class AutoExploration(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
                     self.runtime_state["wait_next_round"] = True
 
             if not self.runtime_state["wait_next_round"]:
-                self.runtime_state["skill_time"] = self.use_skill(self.runtime_state["skill_time"])
+                self.skill_tick()
+            self.jiggle_tick()
         else:
             if self.runtime_state["start_time"] > 0:
                 self.init_runtime_state()
