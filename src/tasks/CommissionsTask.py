@@ -197,7 +197,7 @@ class CommissionsTask(BaseDNATask):
             if self.mission_status != Mission.CONTINUE:
                 if 1 not in round_to_use:
                     return
-            elif (self.current_round + 1) not in round_to_use:
+            elif self.current_round == 0 or (self.current_round + 1) not in round_to_use:
                 return
         if drop_rate == "100%":
             self.click_relative(0.40, 0.56)
