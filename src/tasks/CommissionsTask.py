@@ -113,7 +113,7 @@ class CommissionsTask(BaseDNATask):
 
     def start_mission(self, timeout=0):
         action_timeout = self.action_timeout if timeout == 0 else timeout
-        box = self.box_of_screen_scaled(2560, 1440, 60, 1029, 1582, 1332, name="reward_drag_area", hcenter=True)
+        box = self.box_of_screen_scaled(2560, 1440, 60, 1029, 2056, 1332, name="reward_drag_area", hcenter=True)
         start_time = time.time()
         while time.time() - start_time < action_timeout:
             if btn := self.find_retry_btn() or self.find_bottom_start_btn() or self.find_big_bottom_start_btn():
