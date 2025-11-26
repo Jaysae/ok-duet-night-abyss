@@ -241,7 +241,7 @@ class AutoExploration_Fast(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
         roulette_task = self.get_task_by_class(AutoRouletteTask)
         if not self.wait_until(
             self.in_team, 
-            post_action = lambda: self.send_key(self.get_interact_key(), after_sleep=0.1),
+            post_action = lambda: self.send_key('f', after_sleep=0.1),
             time_out = 1.5
         ):
             maze_task.run()

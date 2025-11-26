@@ -43,8 +43,6 @@ class AutoExpulsion(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
 
         self.default_config.pop("启用自动穿引共鸣", None)
         self.action_timeout = 10
-        
-        self.skill_tick = self.create_skill_ticker()
         self.random_walk_tick = self.create_random_walk_ticker()
 
     def run(self):
@@ -81,8 +79,8 @@ class AutoExpulsion(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
             self.sleep(0.1)
 
     def init_all(self):
+        super().init_all()
         self.init_for_next_round()
-        self.skill_tick.reset()
         self.current_round = 0
 
     def init_for_next_round(self):
@@ -104,7 +102,7 @@ class AutoExpulsion(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
             self.wait_until(lambda: not self.in_team(), time_out=30, settle_time=1)
 
         self.random_walk_tick()
-        self.skill_tick()
+        self.update_skills()
 
     def handle_mission_start(self):
         if self.count >= self.config.get("刷几次", 999):

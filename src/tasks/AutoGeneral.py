@@ -33,7 +33,7 @@ class AutoGeneral(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
 
         self.setup_commission_config()
 
-        keys_to_remove = ["使用技能", "技能释放频率", "超时时间"]
+        keys_to_remove = ["战技释放频率", "终结技释放频率", "超时时间"]
         for key in keys_to_remove:
             self.default_config.pop(key, None)
 

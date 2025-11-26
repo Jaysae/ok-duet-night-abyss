@@ -34,8 +34,8 @@ class AutoEscortTask(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
         self.setup_commission_config()
         keys_to_remove = [
             "启用自动穿引共鸣",
-            "使用技能",
-            "技能释放频率",
+            "战技释放频率",
+            "终结技释放频率",
             "发出声音提醒",
         ]
         for key in keys_to_remove:

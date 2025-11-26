@@ -15,6 +15,18 @@ class Mission(Enum):
 
 class CommissionsTask(BaseDNATask):
 
+    # 定义常量，方便后续维护
+    SKILL_COMBAT = "战技"
+    SKILL_ULTIMATE = "终结技"
+    # 如果未来需要魔灵支援，可以在这里加，并在配置里加对应的频率项
+
+    # 定义技能属性：优先级（越小越高）和 动画时长（秒）
+    # 注意：动画时长建议稍微多预留 0.1-0.2 秒的缓冲
+    SKILL_PROPS = {
+        SKILL_ULTIMATE: {"priority": 1, "duration": 3.5}, # 终结技优先级最高，耗时约3.5s
+        SKILL_COMBAT:   {"priority": 2, "duration": 1.5}, # 战技优先级次之，耗时约1.5s
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.current_round = 0
@@ -22,14 +34,16 @@ class CommissionsTask(BaseDNATask):
         self.mission_status = None
         self.action_timeout = 10
         self.wave_future = None
+        self._active_skill_tasks = []
+        self._global_busy_until = 0
 
     def setup_commission_config(self):
         self.default_config.update({
             '超时时间': 120,
             "委托手册": "不使用",
             "委托手册指定轮次": "",
-            "使用技能": "不使用",
-            "技能释放频率": 5.0,
+            "战技释放频率": 5.0,
+            "终结技释放频率": 15.0,
             "启用自动穿引共鸣": True,
             "发出声音提醒": True,
             "自动选择首个密函和密函奖励": True,
@@ -38,7 +52,8 @@ class CommissionsTask(BaseDNATask):
         self.config_description.update({
             "委托手册指定轮次": "范例: 3,5,8",
             "超时时间": "超时后将重启任务",
-            "技能释放频率": "毎几秒释放一次技能",
+            "战技释放频率": "单位：秒。设置为 0 则不使用此技能",
+            "终结技释放频率": "单位：秒。设置为 0 则不使用此技能",
             "启用自动穿引共鸣": "在需要跑图时时启用触发任务的自动穿引共鸣",
             "发出声音提醒": "在需要时发出声音提醒",
             "自动选择首个密函和密函奖励": "刷武器密函时推荐同时开启下一选项",
@@ -47,10 +62,6 @@ class CommissionsTask(BaseDNATask):
         self.config_type["委托手册"] = {
             "type": "drop_down",
             "options": ["不使用", "100%", "200%", "800%", "2000%"],
-        }
-        self.config_type["使用技能"] = {
-            "type": "drop_down",
-            "options": ["不使用", "战技", "终结技", "魔灵支援"],
         }
         self.config_type["优先选择密函奖励"] = {
             "type": "drop_down",
@@ -338,32 +349,81 @@ class CommissionsTask(BaseDNATask):
             )
         self.sleep(3)
 
-    def use_skill(self, skill_time):
-        if not hasattr(self, "config"):
+    def init_all(self):
+        # 每次初始化时重置时间锁
+        self._global_busy_until = 0
+        # 调用加载技能配置的方法
+        self._load_skill_config()
+
+    def _load_skill_config(self):
+        self._active_skill_tasks = []
+        if not hasattr(self, "config") or not self.config:
             return
-        if self.config.get("使用技能", "不使用") != "不使用" and time.time() - skill_time >= self.config.get("技能释放频率", 5):
-            skill_time = time.time()
-            if self.config.get("使用技能") == "战技":
-                self.get_current_char().send_combat_key()
-            elif self.config.get("使用技能") == "终结技":
-                self.get_current_char().send_ultimate_key()
-            elif self.config.get("使用技能") == "魔灵支援":
-                self.get_current_char().send_geniemon_key()
-        return skill_time
+        skill_map = [
+            ("战技释放频率", self.SKILL_COMBAT),
+            ("终结技释放频率", self.SKILL_ULTIMATE),
+        ]
+        for config_key, skill_type in skill_map:
+            freq = float(self.config.get(config_key, 0))
+            if freq > 0:
+                # 获取该技能的静态属性
+                props = self.SKILL_PROPS.get(skill_type, {"priority": 10, "duration": 1.0})
+                
+                self._active_skill_tasks.append({
+                    'type': skill_type,
+                    'freq': freq,
+                    'next_run': 0,
+                    # 将属性直接存入 task，避免循环中查字典
+                    'priority': props['priority'],
+                    'duration': props['duration']
+                })
+        # 预先按优先级排序（高优先级的在前面），这样在循环中可以直接取第一个满足条件的
+        self._active_skill_tasks.sort(key=lambda x: x['priority'])
 
-    def create_skill_ticker(self):
-
-        def action():
-            if self.config.get("使用技能", "不使用") == "不使用":
-                return
-            if self.config.get("使用技能") == "战技":
-                self.get_current_char().send_combat_key()
-            elif self.config.get("使用技能") == "终结技":
-                self.get_current_char().send_ultimate_key()
-            elif self.config.get("使用技能") == "魔灵支援":
-                self.get_current_char().send_geniemon_key()
-
-        return self.create_ticker(action, interval=lambda: self.config.get("技能释放频率", 5))
+    def _execute_skill_action(self, skill_type):
+        """
+        执行按键操作
+        """
+        char = self.get_current_char()
+        if not char:
+            return
+        self.log_info(f"使用技能: {skill_type}")
+        if skill_type == self.SKILL_COMBAT:
+            char.send_combat_key()
+        elif skill_type == self.SKILL_ULTIMATE:
+            char.send_ultimate_key()
+            
+    def update_skills(self):
+        """
+        带动作锁和优先级判定的技能循环
+        """
+        if not self._active_skill_tasks:
+            return
+        now = time.time()
+        # 1. 检查全局锁：如果角色正忙（正在播放动画），直接跳过
+        if now < self._global_busy_until:
+            return
+        # 2. 寻找所有“当前已就绪”的技能
+        ready_tasks = []
+        for task in self._active_skill_tasks:
+            if now >= task['next_run']:
+                ready_tasks.append(task)
+        if not ready_tasks:
+            return
+        # 3. 选取优先级最高的一个执行
+        # 因为 _load_skill_config 里已经 sort 过了，列表里的第一个就是优先级最高的
+        target_task = ready_tasks[0]
+        # 4. 执行技能
+        self._execute_skill_action(target_task['type'])
+        # 5. 设置全局锁 (关键步骤)
+        # 角色将在接下来的 duration 时间内处于忙碌状态
+        self._global_busy_until = now + target_task['duration']
+        # 6. 更新该技能的下一次运行时间
+        # 注意：这里使用 now + freq，而不是 next_run + freq
+        # 这样可以防止因动画阻塞导致的技能连发（“积压”释放）
+        target_task['next_run'] = now + target_task['freq']
+        # (可选) 记录日志
+        # self.log_debug(f"技能 {target_task['type']} 释放完毕，锁定 {target_task['duration']}s")
 
     def get_round_info(self):
         """获取并更新当前轮次信息。"""

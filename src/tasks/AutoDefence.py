@@ -37,7 +37,6 @@ class AutoDefence(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
         self.external_movement = _default_movement
         self._external_config = None
         self._merged_config_cache = None
-        self.skill_tick = self.create_skill_ticker()
 
     @property
     def config(self):
@@ -98,8 +97,8 @@ class AutoDefence(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
             self.sleep(0.1)
 
     def init_all(self):
+        super().init_all()
         self.init_for_next_round()
-        self.skill_tick.reset()
         self.current_round = 0
 
     def init_for_next_round(self):
@@ -133,7 +132,7 @@ class AutoDefence(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
 
             # 如果未超时，则使用技能
             if not self.runtime_state["wait_next_wave"]:
-                self.skill_tick()
+                self.update_skills()
         else:
             if self.runtime_state["wave"] > 0:
                 self.init_runtime_state()

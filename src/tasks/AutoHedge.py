@@ -41,8 +41,6 @@ class AutoHedge(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
         self.external_movement_evac = _default_movement
         self._external_config = None
         self._merged_config_cache = None
-        self.skill_tick = self.create_skill_ticker()
-
         self.track_point_pos = 0
         self.mission_complete = False
         self.ocr_future = None
@@ -111,8 +109,8 @@ class AutoHedge(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
             self.sleep(0.1)
 
     def init_all(self):
+        super().init_all()
         self.init_for_next_round()
-        self.skill_tick.reset()
         self.current_round = 0
         self.track_point_pos = 0
         self.mission_complete = False
@@ -144,7 +142,7 @@ class AutoHedge(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
                     self.runtime_state["wait_next_round"] = True
 
             if not self.runtime_state["wait_next_round"]:
-                self.skill_tick()
+                self.update_skills()
         else:
             if self.runtime_state["start_time"] > 0:
                 self.init_runtime_state()

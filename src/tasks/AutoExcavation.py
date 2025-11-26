@@ -38,7 +38,6 @@ class AutoExcavation(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
 
         self.action_timeout = DEFAULT_ACTION_TIMEOUT
         self.quick_move_task = QuickMoveTask(self)
-        self.skill_tick = self.create_skill_ticker()
 
     def run(self):
         DNAOneTimeTask.run(self)
@@ -81,8 +80,8 @@ class AutoExcavation(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
             self.sleep(0.1)
 
     def init_all(self):
+        super().init_all()
         self.init_for_next_round()
-        self.skill_tick.reset()
         self.current_round = 0
 
     def init_for_next_round(self):
@@ -97,7 +96,7 @@ class AutoExcavation(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
             if self.runtime_state["start_time"] == 0:
                 self.runtime_state["start_time"] = time.time()
                 self.quick_move_task.reset()
-            self.skill_tick()
+            self.update_skills()
         else:
             if self.runtime_state["start_time"] > 0:
                 self.init_runtime_state()

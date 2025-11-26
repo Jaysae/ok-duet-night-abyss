@@ -69,8 +69,6 @@ class ImportTask(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
             '外部文件夹': '选择mod目录下的外部逻辑',
             # '使用内建解密': '使用ok内建解密功能',
         })
-
-        self.skill_tick = self.create_skill_ticker()
         self.action_timeout = 10
         self.quick_move_task = QuickMoveTask(self)
 
@@ -111,7 +109,7 @@ class ImportTask(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
                 if self.current_wave != -1:
                     if self.current_wave != self.runtime_state["wave"]:
                         self.runtime_state["wave"] = self.current_wave
-                self.skill_tick()
+                self.update_skills()
                 if time.time() - self.runtime_state["wave_start_time"] >= self.config.get('超时时间', 180):
                     self.log_info('任务超时')
                     self.open_in_mission_menu()
@@ -143,9 +141,9 @@ class ImportTask(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
             self.sleep(0.2)
 
     def init_all(self):
+        super().init_all()
         self.init_for_next_round()
         self.delay_index = None
-        self.skill_tick.reset()
         self.current_round = 0
 
     def init_for_next_round(self):
