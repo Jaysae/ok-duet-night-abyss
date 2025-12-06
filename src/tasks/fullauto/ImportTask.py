@@ -1,8 +1,6 @@
 from qfluentwidgets import FluentIcon
 import re
 import time
-import win32con
-import win32api
 import cv2
 import os
 import json
@@ -12,13 +10,9 @@ from functools import cached_property
 from pathlib import Path
 from PIL import Image
 from ok import Logger, TaskDisabledException, GenshinInteraction
-from ok import find_boxes_by_name
 from src.tasks.DNAOneTimeTask import DNAOneTimeTask
 from src.tasks.CommissionsTask import CommissionsTask, Mission, QuickMoveTask
 from src.tasks.BaseCombatTask import BaseCombatTask
-
-from src.tasks.trigger.AutoMazeTask import AutoMazeTask
-from src.tasks.trigger.AutoRouletteTask import AutoRouletteTask
 
 from src.tasks.AutoDefence import AutoDefence
 from src.tasks.AutoExpulsion import AutoExpulsion
@@ -301,7 +295,9 @@ class ImportTask(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
         box = self.box_of_screen_scaled(2560, 1440, 1, 1, 2559, 1439, name="full_screen", hcenter=True)
 
         # 只裁剪和转换一次屏幕
-        cropped_screen = box.crop_frame(self.frame)
+        frame = self.frame
+        self.shared_frame = frame
+        cropped_screen = box.crop_frame(frame)
         screen_gray = cv2.cvtColor(cropped_screen, cv2.COLOR_BGR2GRAY)
 
         count = 0
@@ -352,6 +348,9 @@ class ImportTask(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
 
             count += 1
 
+            if self.height != 1080:
+                scale_factor = self.height / 1080
+                template_gray = cv2.resize(template_gray, (0, 0), fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_LINEAR)
             # 执行匹配
             result = cv2.matchTemplate(screen_gray, template_gray, cv2.TM_CCOEFF_NORMED)
             _, threshold, _, _, = cv2.minMaxLoc(result)
@@ -399,12 +398,15 @@ class ImportTask(DNAOneTimeTask, CommissionsTask, BaseCombatTask):
 
             if self.check_for_monthly_card()[0]:
                 raise MacroFailedException
-            
+
+            self.next_frame()
+            self.shared_frame = self.frame
+
             current_offset = time.perf_counter() - start_time
             delay = target_time - current_offset
             target = time.perf_counter() + delay
             if delay > 0.02:
-                time.sleep(delay - 0.02)
+                self.sleep(delay - 0.02)
 
             while time.perf_counter() < target:
                 pass

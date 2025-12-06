@@ -76,7 +76,7 @@ class BaseDNATask(BaseTask):
         self.old_mouse_pos = None
         self.next_monthly_card_start = 0
         self._logged_in = False
-        self.hold_lalt = False  # 新增：用于控制 lalt 键状态的信号
+        self.hold_lalt = False
         self.sensitivity_config = self.get_global_config('Game Sensitivity Config')  # 游戏灵敏度配置
 
     @property
@@ -93,6 +93,14 @@ class BaseDNATask(BaseTask):
     def thread_pool_executor(self) -> ThreadPoolExecutor:
         return og.my_app.get_thread_pool_executor()
     
+    @property
+    def shared_frame(self) -> np.ndarray:
+        return og.my_app.shared_frame
+    
+    @shared_frame.setter
+    def shared_frame(self, value):
+        og.my_app.shared_frame = value
+
     @cached_property
     def genshin_interaction(self):
         """
@@ -545,7 +553,7 @@ class BaseDNATask(BaseTask):
         def send_key_up(key):
             interaction = self.executor.interaction
             vk_code = interaction.get_key_by_str(key)
-            interaction.post(win32con.WM_KEYDOWN, vk_code, interaction.lparam)
+            interaction.post(win32con.WM_KEYUP, vk_code, interaction.lparam)
 
         def send_key(key, down_time=0.02, after_sleep=0.0):
             interaction = self.executor.interaction
@@ -557,12 +565,12 @@ class BaseDNATask(BaseTask):
 
         def in_team():
             nonlocal _in_team
-            # if _in_team is None:
-            #     frame = self.frame.copy()
-            #     if frame is None:
-            #         return
-            #     _in_team = self.in_team(frame)
-            return True
+            local_frame = self.shared_frame 
+            if _in_team is None and local_frame is not None:
+                _in_team = self.in_team(local_frame)
+            elif local_frame is None:
+                _in_team = True
+            return _in_team
 
         def check_alt():
             nonlocal lalt_pressed, needs_resync, _in_team
@@ -577,12 +585,10 @@ class BaseDNATask(BaseTask):
                     self.log_info("[LAlt保持] 暂停: 检测到不在队伍，暂时释放 LAlt")
                     needs_resync = True
                     send_key_up("lalt")
-                    time.sleep(0.1)
                 elif needs_resync and in_team():
                     self.log_info("[LAlt保持] 恢复: 检测到重回队伍，重新按下 LAlt")
                     needs_resync = False
                     send_key_down("lalt")
-                    time.sleep(0.1)
                 _in_team = None
             else:
                 if lalt_pressed:
